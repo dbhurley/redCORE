@@ -26,6 +26,14 @@ abstract class RLoader
 	protected static $classes = array();
 
 	/**
+	 * Holds proxy classes and the class names the proxy.
+	 *
+	 * @var    array
+	 * @since  3.2
+	 */
+	protected static $classAliases = array();
+
+	/**
 	 * Container for already imported library paths.
 	 *
 	 * @var  array
@@ -238,6 +246,28 @@ abstract class RLoader
 	}
 
 	/**
+	 * Offers the ability for "just in time" usage of `class_alias()`.
+	 * You cannot overwrite an existing alias.
+	 *
+	 * @param   string  $alias     The alias name to register.
+	 * @param   string  $original  The original class to alias.
+	 *
+	 * @return  boolean  True if registration was successful. False if the alias already exists.
+	 *
+	 */
+	public static function registerAlias($alias, $original)
+	{
+		if (!isset(self::$classAliases[$alias]))
+		{
+			self::$classAliases[$alias] = $original;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Register a class prefix with lookup path.  This will allow developers to register library
 	 * packages with different class prefixes to the system autoloader.  More than one lookup path
 	 * may be registered for the same class prefix, but if this method is called with the reset flag
@@ -334,7 +364,7 @@ abstract class RLoader
 	 *
 	 * @return  void
 	 */
-	public static function setup($enablePsr = false, $enablePrefixes = true, $enableClasses = true)
+	public static function setup($enablePsr = true, $enablePrefixes = true, $enableClasses = true)
 	{
 		if ($enableClasses)
 		{
@@ -352,6 +382,8 @@ abstract class RLoader
 		{
 			// Register the PSR-0 based autoloader.
 			spl_autoload_register(array('RLoader', 'loadByPsr0'), true, true);
+			spl_autoload_register(array('RLoader', 'loadByAlias'));
+
 		}
 	}
 
@@ -409,6 +441,28 @@ abstract class RLoader
 		}
 
 		return false;
+	}
+
+	/**
+	 * Method to autoload classes that have been aliased using the registerAlias method.
+	 *
+	 * @param   string  $class  The fully qualified class name to autoload.
+	 *
+	 * @return  boolean  True on success, false otherwise.
+	 *
+	 */
+	public static function loadByAlias($class)
+	{
+		// Remove the root backslash if present.
+		if ($class[0] == '\\')
+		{
+			$class = substr($class, 1);
+		}
+
+		if (isset(self::$classAliases[$class]))
+		{
+			class_alias(self::$classAliases[$class], $class);
+		}
 	}
 
 	/**

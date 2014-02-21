@@ -86,6 +86,9 @@ if (!$view instanceof RViewBase)
 	);
 }
 
+// Get the toolbar
+$toolbar = $view->getToolbar();
+
 // Get the view template.
 $tpl = $data['tpl'];
 
@@ -96,7 +99,15 @@ if ($result instanceof Exception)
 {
 	return $result;
 }
+
 ?>
 <div class="redcore">
-	<?php echo $result; ?>
+	<?php if ($toolbar instanceof RToolbar) : ?>
+		<div class="row-fluid">
+			<?php echo $toolbar->render() ?>
+		</div>
+	<?php endif; ?>
+	<div class="row-fluid">
+		<?php echo $result; ?>
+	</div>
 </div>

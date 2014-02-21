@@ -27,6 +27,7 @@ if (!class_exists('JFormField', false))
 
 // Register the classes for autoload.
 JLoader::registerPrefix('R', JPATH_REDCORE);
+RLoader::registerAlias('RedRoute',  'RApplicationRoute');
 
 // Setup the RLoader.
 RLoader::setup();
